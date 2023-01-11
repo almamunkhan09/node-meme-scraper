@@ -2,10 +2,16 @@
   "name": "node-meme-scraper",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node index.js"
+  },
   "repository": "https://github.com/almamunkhan09/node-meme-scraper.git",
   "author": "Al Mamun Khan <almamunkhan09@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "axios": "^1.2.2"
+    "axios": "^1.2.2",
+    "cheerio": "^1.0.0-rc.12",
+    "nodemon": "^2.0.20"
   }
 }

@@ -1,8 +1,20 @@
+// import packages
+
 import { createWriteStream } from 'node:fs';
 import * as fs from 'node:fs/promises';
-// import packages
+import { clearInterval } from 'node:timers';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
+import cliProgress from 'cli-progress';
+
+// initiate the progess bar
+const bar1 = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
+bar1.start(200, 0); // Set the final and initial state of bar
+
+//run the bar update a 200 ms interval
+const progressbar = setInterval(() => {
+  bar1.update(25);
+}, 200);
 
 // Website URL
 const url = 'https://memegen-link-examples-upleveled.netlify.app/';
@@ -122,8 +134,14 @@ async function downloadFile(url) {
       }
     }
   } catch (error) {
-    console.log('error occured ', error); //catch error and log it
+    throw new Error('Application broken ');
   }
 }
 
-downloadFile(url);
+downloadFile(url)
+  .then(() => {
+    clearInterval(progressbar); // clear the interval
+    bar1.update(200); // update the bar to final value so that its shows full bar at finish
+    bar1.stop(); // finaly return to console
+  })
+  .catch((err) => console.log(err));

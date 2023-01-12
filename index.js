@@ -11,10 +11,10 @@ import cliProgress from 'cli-progress';
 const bar1 = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
 bar1.start(200, 0); // Set the final and initial state of bar
 
-//run the bar update a 200 ms interval
+// run the bar update a 200 ms interval
 const progressbar = setInterval(() => {
-  bar1.update(25);
-}, 200);
+  bar1.update(10);
+}, 50);
 
 // Website URL
 const url = 'https://memegen-link-examples-upleveled.netlify.app/';
@@ -33,30 +33,34 @@ async function downloadAndSave(URLsources) {
   }
   await fs.mkdir('./memes'); // Create directory named memes
 
-  URLsources.forEach((url, index) => {
-    if (index + 1 >= 10)
+  URLsources.forEach((urlSource, index) => {
+    if (index + 1 >= 10) {
       axios({
         method: 'get',
-        url: url,
+        url: urlSource,
         responseType: 'stream',
-      }).then(function (response) {
-        response.data.pipe(createWriteStream(`./memes/${index + 1}.jpg`));
-      });
-    else {
+      })
+        .then(function (response) {
+          response.data.pipe(createWriteStream(`./memes/${index + 1}.jpg`));
+        })
+        .catch((err) => err);
+    } else {
       axios({
         method: 'get',
-        url: url,
+        url: urlSource,
         responseType: 'stream',
-      }).then(function (response) {
-        response.data.pipe(createWriteStream(`./memes/0${index + 1}.jpg`));
-      });
+      })
+        .then(function (response) {
+          response.data.pipe(createWriteStream(`./memes/0${index + 1}.jpg`));
+        })
+        .catch((err) => err);
     }
   });
 }
 
 // Function that get image sources and top text and bottom text
 
-async function downloadFile(url) {
+async function downloadFile(webURL) {
   try {
     // Define source array where we will put source urls of images
 
@@ -66,9 +70,9 @@ async function downloadFile(url) {
 
     const textArrays = [];
 
-    //Get fetch data from url using axios and initiate the cheerio
+    // Get fetch data from webURL using axios and initiate the cheerio
 
-    const { data } = await axios(url);
+    const { data } = await axios(webURL);
     const $ = cheerio.load(data);
 
     // Get the souce by using cheerio
@@ -86,8 +90,8 @@ async function downloadFile(url) {
         const text = source
           .replace('https://api.memegen.link/images/', '') // replaces first part of the image url
           .replace(/.([jpg]|[png]|[jpeg])*\?width=[0-9]*/, '') // replace query and width data of the image
-          .replace(/\~q/, '?') // replace \~q as it apeears in url instead of a ? in the text of images
-          .replace(/\_/g, ' ') // also replace _ as it appears in url instaed of no top text in the images
+          .replace(/~q/, '?') // replace \~q as it apeears in url instead of a ? in the text of images
+          .replace(/_/g, ' ') // also replace _ as it appears in url instaed of no top text in the images
           .split('/'); // split the to get array. It still includes a element before the upper text
 
         // Check if the is no text or has only one text
@@ -104,15 +108,17 @@ async function downloadFile(url) {
           source: source,
         };
         textArrays.push(textObj); // Get the texts and the index
+        console.log(textArrays);
       }
     });
     // Run if there is no user inputs
     if (!process.argv[2] && !process.argv[3] && !process.argv[4]) {
-      const customURL = sources.filter((item, index) => {
-        if (index < 10) return item;
+      const firstTenURL = [];
+      sources.forEach((item, index) => {
+        if (index < 10) firstTenURL.push(item);
       });
 
-      downloadAndSave(customURL);
+      await downloadAndSave(firstTenURL);
     } else {
       if (!(process.argv[3] && process.argv[4])) {
         console.log('Either provide 3 or no arguments'); // returns if atlaest one but not 3 arguments provided by user
@@ -130,7 +136,7 @@ async function downloadFile(url) {
         console.log('No image found');
       } else {
         const customURL = filterTextArray.map((item) => item['source']);
-        downloadAndSave(customURL);
+        await downloadAndSave(customURL);
       }
     }
   } catch (error) {

@@ -108,7 +108,6 @@ async function downloadFile(webURL) {
           source: source,
         };
         textArrays.push(textObj); // Get the texts and the index
-        console.log(textArrays);
       }
     });
     // Run if there is no user inputs

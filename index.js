@@ -120,7 +120,9 @@ async function downloadFile(webURL) {
       await downloadAndSave(firstTenURL);
     } else {
       if (!(process.argv[3] && process.argv[4])) {
-        console.log('Either provide 3 or no arguments'); // returns if atlaest one but not 3 arguments provided by user
+        console.error(
+          '\n Program Exited with Error. Either provide 3 or no arguments',
+        ); // returns if atlaest one but not 3 arguments provided by user
         process.exit();
       }
       // Runs if three arguments are provided
@@ -132,7 +134,8 @@ async function downloadFile(webURL) {
         );
       });
       if (!filterTextArray.length) {
-        console.log('No image found');
+        console.log('\n Program Exited. No image found');
+        process.exit();
       } else {
         const customURL = filterTextArray.map((item) => item['source']);
         await downloadAndSave(customURL);

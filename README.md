@@ -1,7 +1,7 @@
 # Node Meme Scraper
 
 It is a web scraper that scraps the various information of images presented in the website https://memegen-link-examples-upleveled.netlify.app/.
-Alsothe application can download images based on user input.
+Also the application can download images based on user input.
 
 ## Authors
 
@@ -31,22 +31,19 @@ $ node index
 
 It will get all the image from the website and download and store the memes folder. Every run it will overwrite existing file and run without any error
 
-```bash
- $ node index <color name > <luminosity>
-
-```
-
-The application also supports user inputs. For the user input it supports upper text, bottom text and the name of images. You will find the uppertext and bottom text on images. Sometimes there is no text on the images for this simpley pass " " a space in tyhe command line. The name can be found by inspecting the source attribute of the images.
-The command for downloding the images pass all the parameters in order.Othwrise it will download no image or throw an error.
+The application also supports user inputs. For the user input it requires three argument. First argument is the text what the user want to see at the top of the image. Then next argument is the text that will appear at the bottom and final argument is the image name,That exist in the image urls in the base website. If the name dont match it will show na error.
 
 ```bash
 $ node index <upper text> <lower text > <name>
 ```
 
-Note that pass " " if there in no text neither on top nor bottom. And also pass the string inside " " mark your argument contain more than a word. for Example "I'm meme".  
-If there is no images specific to your query it will return "Not Found"
+Some common name in the website is snek,bender etc.
 
-Errors. If you pass 1 least one arguments and less then 3 arguments as spcified avobe it will return an error message.
+To download the image of bender type
+
+```bash
+$ node index <upper text> <lower text > bender
+```
 
 ```bash
 $ node index meme

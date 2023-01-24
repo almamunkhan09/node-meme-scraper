@@ -20,6 +20,41 @@ const progressbar = setInterval(() => {
 const url = 'https://memegen-link-examples-upleveled.netlify.app/';
 
 // write function to download images from url
+const sources = [];
+
+// Define an array of objects where we will put all top texts and buttom texts for more functionaly of the project
+
+const imagesArrays = [];
+
+// Get fetch data from webURL using axios and initiate the cheerio
+
+const { data } = await axios(url);
+const $ = cheerio.load(data);
+
+// Get the souce by using cheerio
+$('#images > div', data).each((index, element) => {
+  if (index) {
+    const children = $(element).children();
+    const children1 = $(children).children();
+    const source = $(children1).attr('src');
+
+    // Push single souce url to the sources array
+    sources.push(source);
+
+    // We nedd to Seperate the url sources and image name
+    const images = source.split('/');
+    const imageName = images[4];
+    const imageSrc = images.splice(0, 4).join('/');
+
+    // Save the image name and url spurce in images array for further futuer download
+    const textObj = {
+      index: index - 1,
+      name: imageName,
+      source: imageSrc,
+    };
+    imagesArrays.push(textObj); // push the name and url as an object to the images sources // log here to check if there is any error
+  }
+});
 
 async function downloadAndSave(URLsources) {
   // check if the folder exists or not
@@ -60,57 +95,8 @@ async function downloadAndSave(URLsources) {
 
 // Function that get image sources and top text and bottom text
 
-async function downloadFile(webURL) {
+async function downloadFile() {
   try {
-    // Define source array where we will put source urls of images
-
-    const sources = [];
-
-    // Define an array of objects where we will put all top texts and buttom texts for more functionaly of the project
-
-    const textArrays = [];
-
-    // Get fetch data from webURL using axios and initiate the cheerio
-
-    const { data } = await axios(webURL);
-    const $ = cheerio.load(data);
-
-    // Get the souce by using cheerio
-    $('#images > div', data).each((index, element) => {
-      if (index) {
-        const children = $(element).children();
-        const children1 = $(children).children();
-        const source = $(children1).attr('src');
-
-        // Push single souce url to the sources array
-        sources.push(source);
-
-        // Get the upper text and buttom text
-
-        const text = source
-          .replace('https://api.memegen.link/images/', '') // replaces first part of the image url
-          .replace(/.([jpg]|[png]|[jpeg])*\?width=[0-9]*/, '') // replace query and width data of the image
-          .replace(/~q/, '?') // replace \~q as it apeears in url instead of a ? in the text of images
-          .replace(/_/g, ' ') // also replace _ as it appears in url instaed of no top text in the images
-          .split('/'); // split the to get array. It still includes a element before the upper text
-
-        // Check if the is no text or has only one text
-        const textObj = {
-          index: index - 1,
-          name: text[0],
-          topText:
-            text.length <= 2
-              ? text.length === 2
-                ? text[text.length - 1]
-                : ' '
-              : text[text.length - 2],
-          bottomText: text.length >= 3 ? text[text.length - 1] : ' ',
-          source: source,
-        };
-        textArrays.push(textObj); // Get the texts and the index
-      }
-    });
-    // Run if there is no user inputs
     if (!process.argv[2] && !process.argv[3] && !process.argv[4]) {
       const firstTenURL = [];
       sources.forEach((item, index) => {
@@ -118,27 +104,23 @@ async function downloadFile(webURL) {
       });
 
       await downloadAndSave(firstTenURL);
+    } else if (!process.argv[4]) {
+      console.error(
+        '\n Program Exited with Error. Either provide 3 or no arguments',
+      ); // returns if atlaest one but not 3 arguments provided by user
+      process.exit();
     } else {
-      if (!(process.argv[3] && process.argv[4])) {
-        console.error(
-          '\n Program Exited with Error. Either provide 3 or no arguments',
-        ); // returns if atlaest one but not 3 arguments provided by user
-        process.exit();
-      }
-      // Runs if three arguments are provided
-      const filterTextArray = textArrays.filter((element) => {
-        return (
-          element['topText'] === process.argv[2] && // return elements if user provide valid arguments
-          element['bottomText'] === process.argv[3] &&
-          element['name'] === process.argv[4]
-        );
-      });
-      if (!filterTextArray.length) {
-        console.log('\n Program Exited. No image found');
-        process.exit();
+      const nameExist = imagesArrays.filter(
+        (item) => item.name === process.argv[4],
+      );
+      if (!nameExist.length) {
+        console.log('Image does not exist');
       } else {
-        const customURL = filterTextArray.map((item) => item['source']);
-        await downloadAndSave(customURL);
+        const existedSource = nameExist.map(
+          (item) =>
+            `${item.source}/${item.name}/${process.argv[2]}/${process.argv[3]}.png`,
+        );
+        await downloadAndSave(existedSource);
       }
     }
   } catch (error) {
@@ -146,7 +128,7 @@ async function downloadFile(webURL) {
   }
 }
 
-downloadFile(url)
+downloadFile()
   .then(() => {
     clearInterval(progressbar); // clear the interval
     bar1.update(200); // update the bar to final value so that its shows full bar at finish
